@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avaliação de Assertividade — Rotas da Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1e2530;
+    --border: #2a3340;
+    --gold: #c9a84c;
+    --gold-light: #e8c87a;
+    --text: #e8eaf0;
+    --muted: #8b939e;
+    --qs: #4a9eff;
+    --cf: #7ecba1;
+    --ra: #f0a05a;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(201,168,76,.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(74,158,255,.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* Header */
+  header { text-align: center; margin-bottom: 48px; }
+  .tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(201,168,76,.35);
+    padding: 6px 18px; border-radius: 100px; margin-bottom: 20px;
+    background: rgba(201,168,76,.07);
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 6vw, 52px); font-weight: 900;
+    line-height: 1.1; color: #fff;
+    margin-bottom: 16px;
+  }
+  h1 span { color: var(--gold); }
+  .subtitle { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 540px; margin: 0 auto; }
+
+  /* Progress bar */
+  .progress-wrap { margin-bottom: 36px; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 4px; transition: width .4s ease; }
+
+  /* Question card */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    transition: border-color .2s;
+    animation: fadeUp .3s ease both;
+  }
+  .question-card.answered { border-color: rgba(201,168,76,.3); }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:translateY(0);} }
+
+  .q-header { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
+  .q-num {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: rgba(201,168,76,.12);
+    border: 1px solid rgba(201,168,76,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 14px; color: var(--gold);
+  }
+  .q-text { font-size: 15px; line-height: 1.6; color: var(--text); padding-top: 6px; }
+
+  .options { display: flex; gap: 10px; flex-wrap: wrap; }
+  .opt-btn {
+    flex: 1; min-width: 120px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    letter-spacing: .5px;
+    cursor: pointer;
+    transition: all .18s;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .opt-btn:hover { border-color: var(--gold); color: var(--gold-light); background: rgba(201,168,76,.08); }
+  .opt-btn.selected-qs { border-color: var(--qs); background: rgba(74,158,255,.12); color: var(--qs); }
+  .opt-btn.selected-cf { border-color: var(--cf); background: rgba(126,203,161,.12); color: var(--cf); }
+  .opt-btn.selected-ra { border-color: var(--ra); background: rgba(240,160,90,.12); color: var(--ra); }
+
+  /* Action */
+  .actions { display: flex; justify-content: center; margin-top: 36px; }
+  .btn-calc {
+    padding: 16px 52px;
+    border-radius: 100px;
+    border: none;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #0d1117;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer;
+    transition: transform .18s, box-shadow .18s;
+    letter-spacing: .5px;
+    box-shadow: 0 4px 24px rgba(201,168,76,.3);
+  }
+  .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,.45); }
+  .btn-calc:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  .error-msg { text-align: center; color: #ff6b6b; font-size: 13px; margin-top: 12px; display: none; }
+
+  /* Result panel */
+  #result-panel { display: none; }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    text-align: center;
+    animation: fadeUp .4s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    border-radius: 20px 20px 0 0;
+  }
+  .level-baixa .result-card::before { background: linear-gradient(90deg,#e05a5a,#ff8c8c); }
+  .level-media .result-card::before { background: linear-gradient(90deg,var(--ra),#f8d06a); }
+  .level-boa .result-card::before { background: linear-gradient(90deg,var(--cf),#a8e6c6); }
+  .level-excelente .result-card::before { background: linear-gradient(90deg,var(--gold),var(--gold-light)); }
+
+  .score-circle {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 0 auto 28px;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 40px rgba(201,168,76,.25);
+  }
+  .score-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px; font-weight: 900; color: var(--gold); line-height: 1;
+  }
+  .score-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+  .result-badge {
+    display: inline-block;
+    font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+    padding: 6px 20px; border-radius: 100px;
+    margin-bottom: 16px;
+  }
+  .level-baixa .result-badge { background: rgba(224,90,90,.15); color: #ff8c8c; border: 1px solid rgba(224,90,90,.3); }
+  .level-media .result-badge { background: rgba(240,160,90,.15); color: var(--ra); border: 1px solid rgba(240,160,90,.3); }
+  .level-boa .result-badge { background: rgba(126,203,161,.15); color: var(--cf); border: 1px solid rgba(126,203,161,.3); }
+  .level-excelente .result-badge { background: rgba(201,168,76,.15); color: var(--gold); border: 1px solid rgba(201,168,76,.3); }
+
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 700; color: #fff;
+    margin-bottom: 16px;
+  }
+  .result-desc { font-size: 15px; color: var(--muted); line-height: 1.75; max-width: 520px; margin: 0 auto 32px; }
+
+  .range-bar { margin: 28px 0; }
+  .range-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .range-track { height: 8px; border-radius: 8px; background: var(--border); position: relative; overflow: hidden; }
+  .range-fill { height: 100%; border-radius: 8px; transition: width 1s ease; }
+  .level-baixa .range-fill { background: linear-gradient(90deg,#e05a5a,#ff8c8c); }
+  .level-media .range-fill { background: linear-gradient(90deg,var(--ra),#f8d06a); }
+  .level-boa .range-fill { background: linear-gradient(90deg,var(--cf),#a8e6c6); }
+  .level-excelente .range-fill { background: linear-gradient(90deg,var(--gold),var(--gold-light)); }
+
+  .btn-reset {
+    padding: 12px 36px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .btn-reset:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Legend */
+  .legend { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  @media (max-width: 540px) {
+    .question-card { padding: 20px 18px; }
+    .options { flex-direction: column; }
+    .opt-btn { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="tag">Rotas da Liderança · SEBRAE</div>
+    <h1>Avaliação de<br><span>Assertividade</span></h1>
+    <p class="subtitle">Responda as 36 questões com honestidade. Não há respostas certas ou erradas — o objetivo é refletir sobre seu comportamento real.</p>
+  </header>
+
+  <div id="quiz-section">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="progress-text">0 de 36 respondidas</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--qs)"></div> Quase Sempre</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--cf)"></div> Com Frequência</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--ra)"></div> Raramente</div>
+    </div>
+
+    <div id="questions-list"></div>
+
+    <div class="actions">
+      <div>
+        <button class="btn-calc" id="calc-btn" onclick="calculate()">Calcular Resultado</button>
+        <div class="error-msg" id="error-msg">⚠️ Por favor, responda todas as questões antes de calcular.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="result-panel">
+    <div id="result-container"></div>
+    <div class="actions" style="margin-top:28px">
+      <button class="btn-reset" onclick="resetQuiz()">↺ Refazer o questionário</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  "Fico constrangido quando tenho de enfrentar alguém para resolver um problema.",
+  "Eu perco a paciência com facilidade, pois sou do tipo 'pavio curto'.",
+  "Quando alguém é irônico e sarcástico comigo, eu reajo da mesma forma com ele.",
+  "Prefiro que as pessoas percebam o que eu desejo ou preciso do que eu ter de dizer a elas.",
+  "É importante para mim obter o que preciso e desejo, nem que com isso possa magoar outra pessoa.",
+  "Não me incomodo em admitir meu erro perante os outros.",
+  "Expresso minha discordância das opiniões das pessoas, em geral, sem dificuldade.",
+  "Quando preciso me impor junto a outra pessoa, a forma que normalmente uso é aumentar o tom de voz e olhar penetrante.",
+  "Quando algo sai errado, acho um bode expiatório.",
+  "Para mim, é importante conquistar a simpatia das pessoas, mesmo que para isso eu tenha que fazer coisas que normalmente não faria.",
+  "Tenho habilidade em resolver satisfatoriamente a maioria dos conflitos com outras pessoas.",
+  "Tenho dificuldade em dizer não aos pedidos que as pessoas me fazem, e me sinto culpado quando digo.",
+  "Quando necessário, sou duro e inflexível e não dou explicações sobre minhas decisões.",
+  "Sou objetivo e sempre falo a verdade, doa a quem doer.",
+  "Prefiro ficar quieto e não expressar minhas opiniões.",
+  "Quando preciso, sinto-me à vontade para pedir ajuda do outro.",
+  "Quando alguém faz uma crítica, prefiro ficar quieto para não gerar conflito.",
+  "Eu fico constrangido quando alguém me dá um presente.",
+  "Quando eu falo algo é porque tenho certeza. Por isso fico irritado com a pessoa que discorda de mim.",
+  "Expresso meus sentimentos franca e honestamente, sem constrangimento.",
+  "Gosto de pedir feedback para saber se o outro concorda ou discorda do meu ponto de vista.",
+  "Quando tenho dúvidas, evito fazer perguntas por medo de parecer ridículo.",
+  "Percebo que, frequentemente, as pessoas tiram vantagens de mim.",
+  "Gosto de iniciar conversas com desconhecidos.",
+  "Quando alguém é agressivo, fico chocado e não consigo reagir.",
+  "Eu me sinto uma pessoa importante, competente e querida.",
+  "Sou espontâneo e afetuoso com as pessoas de que gosto.",
+  "Quando vejo que um vendedor se esforçou em mostrar suas mercadorias, sinto dificuldade de dizer 'Não quero nenhuma', se for o caso.",
+  "Quando faço algo que considero bom, faço com que as pessoas saibam disso.",
+  "Se alguém fala a terceiros algo a meu respeito que não me agrada, procuro-o logo para conversar sobre o assunto e mostrar minha insatisfação.",
+  "Quando alguém faz uma crítica, procuro rapidamente mudar meu comportamento para adequar-me à situação.",
+  "Percebo que as pessoas levam em conta minhas opiniões.",
+  "Eu me envolvo facilmente com os problemas dos outros e assumo a responsabilidade em ajudá-los na solução. Se assim não o fizer, sentirei um desconforto.",
+  "Sinto-me mais confortável em ajudar os outros do que ser ajudado.",
+  "Tenho mais facilidade para criticar do que elogiar.",
+  "Quando alguém me elogia, fico constrangido e digo que não fiz mais do que minha obrigação."
+];
+
+// Scoring: index 0 = QS, 1 = CF, 2 = RA
+const scoring = [
+  [1,2,3],[1,2,3],[1,2,3],[1,2,3],[3,2,1],[3,2,1],[3,2,1],[1,2,3],[1,2,3],[1,2,3],
+  [3,2,1],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[3,2,1],[1,2,3],[1,2,3],
+  [1,2,3],[3,2,1],[3,2,1],[1,2,3],[1,2,3],[3,2,1],[1,2,3],[3,2,1],
+  [3,2,1],[1,2,3],[3,2,1],[3,2,1],[1,2,3],[3,2,1],[1,2,3],[1,2,3],[1,2,3],[1,2,3]
+];
+
+const answers = new Array(36).fill(null);
+const labels = ['Quase Sempre', 'Com Frequência', 'Raramente'];
+const classes = ['selected-qs','selected-cf','selected-ra'];
+
+function buildQuestions() {
+  const container = document.getElementById('questions-list');
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `card-${i}`;
+    card.style.animationDelay = `${i * 0.02}s`;
+    card.innerHTML = `
+      <div class="q-header">
+        <div class="q-num">${i+1}</div>
+        <div class="q-text">${q}</div>
+      </div>
+      <div class="options">
+        ${labels.map((l, j) => `<button class="opt-btn" id="opt-${i}-${j}" onclick="select(${i},${j})">${l}</button>`).join('')}
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function select(qIdx, optIdx) {
+  answers[qIdx] = optIdx;
+  for (let j=0; j<3; j++) {
+    const btn = document.getElementById(`opt-${qIdx}-${j}`);
+    btn.className = 'opt-btn' + (j === optIdx ? ' ' + classes[j] : '');
+  }
+  const card = document.getElementById(`card-${qIdx}`);
+  card.classList.add('answered');
+  updateProgress();
+  document.getElementById('error-msg').style.display = 'none';
+}
+
+function updateProgress() {
+  const done = answers.filter(a => a !== null).length;
+  const pct = Math.round(done/36*100);
+  document.getElementById('progress-text').textContent = `${done} de 36 respondidas`;
+  document.getElementById('progress-pct').textContent = `${pct}%`;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function calculate() {
+  if (answers.some(a => a === null)) {
+    document.getElementById('error-msg').style.display = 'block';
+    const firstNull = answers.findIndex(a => a === null);
+    document.getElementById(`card-${firstNull}`).scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  const total = answers.reduce((sum, optIdx, qIdx) => sum + scoring[qIdx][optIdx], 0);
+  showResult(total);
+}
+
+function showResult(total) {
+  document.getElementById('quiz-section').style.display = 'none';
+  const panel = document.getElementById('result-panel');
+  panel.style.display = 'block';
+
+  let level, badge, title, desc, fillPct;
+  if (total <= 36) {
+    level = 'baixa'; badge = 'Baixa Assertividade';
+    title = 'Comportamento Defensivo';
+    desc = 'Você está usando o comportamento defensivo com muita intensidade. Nas situações difíceis, tende a se recolher ou reagir de forma pouco equilibrada. Com prática e autoconhecimento, é possível desenvolver uma comunicação mais assertiva.';
+    fillPct = Math.round((total/108)*100);
+  } else if (total <= 72) {
+    level = 'media'; badge = 'Média Assertividade';
+    title = 'Em Desenvolvimento';
+    desc = 'É provável que nas situações mais difíceis, nas quais se sente ameaçado, você esteja se armando e se defendendo com passividade ou agressividade. Em situações menos ameaçadoras, você tem conseguido ser assertivo.';
+    fillPct = Math.round((total/108)*100);
+  } else if (total <= 85) {
+    level = 'boa'; badge = 'Boa Assertividade';
+    title = 'Comunicação Positiva';
+    desc = 'Na maioria das vezes, você tem se afirmado positivamente. Sabe defender seus direitos sem desrespeitar os dos outros. Continue aprimorando suas habilidades de comunicação para alcançar a excelência.';
+    fillPct = Math.round((total/108)*100);
+  } else {
+    level = 'excelente'; badge = 'Excelente Assertividade';
+    title = 'Comunicação Exemplar';
+    desc = 'Na sua percepção, você negocia bem os seus direitos e respeita os dos outros. Sua comunicação é equilibrada, firme e respeitosa — uma referência de liderança assertiva.';
+    fillPct = Math.round((total/108)*100);
+  }
+
+  const container = document.getElementById('result-container');
+  container.className = `level-${level}`;
+  container.innerHTML = `
+    <div class="result-card">
+      <div class="score-circle">
+        <div class="score-num">${total}</div>
+        <div class="score-label">pontos</div>
+      </div>
+      <div class="result-badge">${badge}</div>
+      <div class="result-title">${title}</div>
+      <div class="result-desc">${desc}</div>
+      <div class="range-bar">
+        <div class="range-label">
+          <span>36 pts — Baixa</span>
+          <span>72 pts — Média</span>
+          <span>85 pts — Boa</span>
+          <span>108 pts — Excelente</span>
+        </div>
+        <div class="range-track">
+          <div class="range-fill" id="rf" style="width:0%"></div>
+        </div>
+      </div>
+    </div>`;
+
+  panel.style.display = 'block';
+  setTimeout(() => { document.getElementById('rf').style.width = fillPct + '%'; }, 100);
+}
+
+function resetQuiz() {
+  answers.fill(null);
+  document.getElementById('quiz-section').style.display = 'block';
+  document.getElementById('result-panel').style.display = 'none';
+  document.getElementById('questions-list').innerHTML = '';
+  buildQuestions();
+  updateProgress();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+buildQuestions();
+</script>
+</body>
+</html>
